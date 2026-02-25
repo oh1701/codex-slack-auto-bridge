@@ -285,6 +285,7 @@ class SlackCodexBridge:
         self._seen_lock = threading.Lock()
         # Limit concurrent `codex exec` workers to prevent process storms.
         self._codex_sem = threading.BoundedSemaphore(MAX_CODEX_CONCURRENCY)
+        self._bridge_started_at = time.time()
 
     def _is_duplicate_event(self, event_id: str) -> bool:
         if not event_id:
@@ -294,6 +295,15 @@ class SlackCodexBridge:
                 return True
             self._seen_event_ids.append(event_id)
         return False
+
+    def _is_after_start(self, ts: str) -> bool:
+        raw_ts = _clean_str(ts)
+        if not raw_ts:
+            return False
+        try:
+            return float(raw_ts) >= self._bridge_started_at
+        except (TypeError, ValueError):
+            return True
 
     def _on_socket_request(self, client: SocketModeClient, req: SocketModeRequest) -> None:
         if req.type != "events_api":
@@ -466,6 +476,9 @@ class SlackCodexBridge:
         if _clean_str(event.get("subtype")):
             return
         if _clean_str(event.get("bot_id")):
+            return
+        event_ts = _clean_str(event.get("ts")) or _clean_str(event.get("event_ts"))
+        if not self._is_after_start(event_ts):
             return
         user = _clean_str(event.get("user"))
         if not user or user == self.bot_user_id:

@@ -20,6 +20,19 @@ Install this repository from https://github.com/oh1701/codex-slack-auto-bridge a
   - App-Level token (`xapp-...`)
   - Bot token (`xoxb-...`)
 
+Codex フォルダー以下に配置してインストールしてください: `~/.codex/codex-slack-auto-bridge`.
+
+例:
+
+```text
+~/.codex/
+└── codex-slack-auto-bridge/
+    ├── README.md
+    ├── scripts/
+    ├── slack-bridge-runtime/
+    └── log/
+```
+
 ## 2) Slack アプリ設定（Socket Mode）
 
 1. アプリ作成
