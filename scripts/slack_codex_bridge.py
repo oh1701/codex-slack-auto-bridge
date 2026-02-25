@@ -11,9 +11,10 @@ import sys
 import tempfile
 import threading
 import time
-if sys.version_info < (3, 11):
-    sys.exit("Python 3.11+ is required (tomllib support)")
-import tomllib
+try:
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - runtime compatibility
+    import tomli as tomllib  # type: ignore[assignment]
 from collections import deque
 from dataclasses import dataclass
 from typing import Any
