@@ -62,18 +62,44 @@ export SLACK_APP_TOKEN="xapp-..."
 export SLACK_BOT_TOKEN="xoxb-..."
 ```
 
-## 3) Install
+## 3) Install (권장 순서)
 
-From repository root:
+Run from repository root in this order:
 
 ```bash
-chmod +x scripts/*.sh
+chmod +x scripts/*.sh slack-bridge-runtime/*.sh
+
+# 1) Create venv and install requirements.txt
+./slack-bridge-runtime/bootstrap.sh
+
+# 2) (Optional) copy example config as baseline
+cp -n config.toml.example ~/.codex/config.toml
+
+# 3) (Recommended) install shell hook for auto-start
+./scripts/install.sh --with-shell-hook
+```
+
+`./slack-bridge-runtime/bootstrap.sh` is the point that runs:
+
+```bash
+python3 -m pip install -r slack-bridge-runtime/requirements.txt
+```
+
+`./scripts/install.sh` also calls the same bootstrap internally, so if you only need dependencies, you can run either:
+
+```bash
 ./scripts/install.sh
+```
+
+or:
+
+```bash
+./slack-bridge-runtime/bootstrap.sh
 ```
 
 What this does:
 - Creates `slack-bridge-runtime/.venv`
-- Installs Python dependencies
+- Installs Python dependencies from `slack-bridge-runtime/requirements.txt`
 
 ## 4) Config Loading Order
 
