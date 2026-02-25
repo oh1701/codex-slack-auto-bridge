@@ -11,6 +11,8 @@ import sys
 import tempfile
 import threading
 import time
+if sys.version_info < (3, 11):
+    sys.exit("Python 3.11+ is required (tomllib support)")
 import tomllib
 from collections import deque
 from dataclasses import dataclass
@@ -23,8 +25,8 @@ try:
     from slack_sdk.web import WebClient
 except ImportError as exc:  # pragma: no cover - runtime dependency check
     sys.stderr.write(
-        "slack_sdk가 필요합니다. "
-        "예: ./slack-bridge-runtime/bootstrap.sh\n"
+        "slack_sdk is required. "
+        "Example: ./slack-bridge-runtime/bootstrap.sh\n"
     )
     raise SystemExit(2) from exc
 
@@ -192,9 +194,9 @@ def load_config(config_path: pathlib.Path) -> BridgeConfig:
         state_path = pathlib.Path(state_path_raw).expanduser().resolve()
 
     if not app_token:
-        raise ValueError("slack.app_token 또는 SLACK_APP_TOKEN 이 필요합니다. (Socket Mode xapp-...)")
+        raise ValueError("slack.app_token or SLACK_APP_TOKEN is required. (Socket Mode xapp-...)")
     if not bot_token:
-        raise ValueError("slack.bot_token 또는 SLACK_BOT_TOKEN 이 필요합니다. (xoxb-...)")
+        raise ValueError("slack.bot_token or SLACK_BOT_TOKEN is required. (xoxb-...)")
 
     return BridgeConfig(
         app_token=app_token,
@@ -328,7 +330,7 @@ class SlackCodexBridge:
         mention = f"<@{self.bot_user_id}>"
         if self.config.mention_only and not self._is_dm_channel(channel_type):
             if mention not in text:
-            return ""
+                return ""
         text = text.replace(mention, " ").strip()
         return re.sub(r"\s+", " ", text)
 
@@ -432,10 +434,10 @@ class SlackCodexBridge:
             )
         except subprocess.TimeoutExpired:
             output_path.unlink(missing_ok=True)
-            return False, "응답 생성이 시간 초과되었습니다. 잠시 후 다시 시도해 주세요."
+            return False, "Response generation timed out. Please try again."
         except OSError as exc:
             output_path.unlink(missing_ok=True)
-            return False, f"Codex 실행 실패: {exc}"
+            return False, f"Codex execution failed: {exc}"
 
         reply = ""
         try:
@@ -449,11 +451,11 @@ class SlackCodexBridge:
             stderr = (result.stderr or result.stdout or "").strip()
             if stderr:
                 tail = stderr.splitlines()[-1]
-                return False, f"Codex 실행 오류: {tail}"
-            return False, f"Codex 실행 오류(returncode={result.returncode})"
+                return False, f"Codex execution error: {tail}"
+            return False, f"Codex execution error (returncode={result.returncode})"
 
         if not reply:
-            return False, "응답이 비어 있습니다. 다시 시도해 주세요."
+            return False, "The response is empty. Please try again."
         return True, reply
 
     def _post_reply(self, channel: str, thread_ts: str, text: str) -> None:
@@ -489,12 +491,12 @@ class SlackCodexBridge:
         with self._codex_sem:
             ok, reply = self._run_codex(prompt)
         if not ok:
-            reply = f"처리 중 오류가 발생했습니다.\n{reply}"
+            reply = f"An error occurred while processing.\n{reply}"
 
         try:
             self._post_reply(channel=channel, thread_ts=thread_ts, text=reply)
         except Exception as exc:  # pragma: no cover - Slack API runtime
-            sys.stderr.write(f"[slack-bridge] chat_postMessage 실패: {exc}\n")
+            sys.stderr.write(f"[slack-bridge] chat_postMessage failed: {exc}\n")
             return
 
         if ok:
