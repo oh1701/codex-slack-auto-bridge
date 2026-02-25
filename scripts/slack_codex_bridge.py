@@ -328,27 +328,80 @@ class SlackCodexBridge:
         mention = f"<@{self.bot_user_id}>"
         if self.config.mention_only and not self._is_dm_channel(channel_type):
             if mention not in text:
-                return ""
+            return ""
         text = text.replace(mention, " ").strip()
         return re.sub(r"\s+", " ", text)
 
+    def _infer_language(self, text: str) -> str:
+        if re.search(r"[\uac00-\ud7a3]", text):
+            return "ko"
+        if re.search(r"[\u3040-\u30ff]", text):
+            return "ja"
+        if re.search(r"[\u4e00-\u9fff]", text):
+            return "zh"
+        if re.search(r"[A-Za-z]", text):
+            return "en"
+        return "en"
+
     def _build_prompt(self, history_rows: list[dict[str, str]], user_text: str) -> str:
+        lang = self._infer_language(user_text)
+
+        prompt_meta = {
+            "ko": {
+                "intro": "너는 Slack에서 대화를 이어가는 Codex 어시스턴트다.",
+                "lang": "아래 이전 맥락을 유지해서 한국어로 답해라.",
+                "history_title": "[대화 맥락]",
+                "role": {"user": "사용자", "assistant": "어시스턴트"},
+                "req_title": "요구사항:",
+                "req1": "1) 답변은 한국어로 작성",
+                "req2": "2) 핵심만 간결하게 답변",
+            },
+            "en": {
+                "intro": "You are a Codex assistant continuing a Slack conversation.",
+                "lang": "Keep the previous context and reply in English.",
+                "history_title": "[Conversation Context]",
+                "role": {"user": "User", "assistant": "Assistant"},
+                "req_title": "Requirements:",
+                "req1": "1) Write the response in English.",
+                "req2": "2) Keep it concise and focused.",
+            },
+            "ja": {
+                "intro": "あなたはSlackの会話を引き継ぐCodexアシスタントです。",
+                "lang": "これまでの文脈を維持し、日本語で回答してください。",
+                "history_title": "[会話履歴]",
+                "role": {"user": "ユーザー", "assistant": "アシスタント"},
+                "req_title": "要件:",
+                "req1": "1) 日本語で回答してください。",
+                "req2": "2) 重要な点を簡潔に回答してください。",
+            },
+            "zh": {
+                "intro": "你是一个在 Slack 中接续对话的 Codex 助手。",
+                "lang": "请保留之前的上下文，并用中文回复。",
+                "history_title": "[对话上下文]",
+                "role": {"user": "用户", "assistant": "助手"},
+                "req_title": "要求:",
+                "req1": "1) 用中文回答。",
+                "req2": "2) 简洁地回答核心内容。",
+            },
+        }
+        meta = prompt_meta.get(lang, prompt_meta["en"])
+
         lines = [
-            "너는 Slack에서 대화를 이어가는 Codex 어시스턴트다.",
-            "아래 이전 맥락을 유지해서 한국어로 답해라.",
+            meta["intro"],
+            meta["lang"],
             "",
-            "[대화 맥락]",
+            meta["history_title"],
         ]
         for row in history_rows[-self.history.max_messages :]:
-            role = "사용자" if row["role"] == "user" else "어시스턴트"
+            role = meta["role"].get(row["role"], row["role"])
             lines.append(f"{role}: {row['text']}")
         lines.extend(
             [
-                f"사용자: {user_text}",
+                f"{meta['role'].get('user', 'User')}: {user_text}",
                 "",
-                "요구사항:",
-                "1) 답변은 한국어로 작성",
-                "2) 핵심만 간결하게 답변",
+                meta["req_title"],
+                meta["req1"],
+                meta["req2"],
             ]
         )
         return "\n".join(lines)
