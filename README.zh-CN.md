@@ -9,7 +9,7 @@ Languages: [English](./README.md) | [한국어](./README.ko.md) | [日本語](./
 可直接复制到 AI 工具中：
 
 ```text
-Install this repository from https://github.com/oh1701/codex-slack-auto-bridge/tree/main and follow README exactly.
+Install this repository from https://github.com/oh1701/codex-slack-auto-bridge and follow README exactly.
 ```
 
 ## 1) 前置条件

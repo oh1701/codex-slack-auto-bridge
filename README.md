@@ -9,7 +9,7 @@ Languages: English (default) | [한국어](./README.ko.md) | [日本語](./READM
 Copy and paste this into your AI tool:
 
 ```text
-Install this repository from https://github.com/oh1701/codex-slack-auto-bridge/tree/main and follow README exactly.
+Install this repository from https://github.com/oh1701/codex-slack-auto-bridge and follow README exactly.
 ```
 
 ## 1) Prerequisites

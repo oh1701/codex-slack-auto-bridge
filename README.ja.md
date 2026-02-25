@@ -9,7 +9,7 @@ Languages: [English](./README.md) | [한국어](./README.ko.md) | 日本語 | [�
 以下をそのまま AI ツールに貼り付けて使えます。
 
 ```text
-Install this repository from https://github.com/oh1701/codex-slack-auto-bridge/tree/main and follow README exactly.
+Install this repository from https://github.com/oh1701/codex-slack-auto-bridge and follow README exactly.
 ```
 
 ## 1) 前提条件
