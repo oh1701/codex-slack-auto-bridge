@@ -1,0 +1,24 @@
+[slack]
+# You can set values here, or in ~/.codex/config.toml.
+# This project file has higher priority when both exist.
+app_token = ""
+bot_token = ""
+# Optional default channel filter (C... / G... / D...)
+# Used when slack_bridge.allowed_channels is empty.
+channel_id = ""
+webhook_url = ""
+
+[slack_bridge]
+# Working directory for `codex exec` (empty -> bridge repo root)
+codex_cd = ""
+codex_timeout_sec = 300
+history_turns = 6
+mention_only = false
+# Optional explicit allowlist; empty means fallback to slack.channel_id (if set),
+# otherwise all channels are allowed (DMs are always allowed).
+allowed_channels = []
+
+# Optional overrides
+# model = ""
+# codex_command = "codex"
+# state_path = "./tmp/slack-bridge-state.json"
